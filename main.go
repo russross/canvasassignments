@@ -25,28 +25,34 @@ func main() {
 		assignmentID       int
 		assignmentGroupID  int
 		includeAssignments bool
+		file               string
+		dry                bool
 	)
 	flag.IntVar(&courseID, "course", 0, "Course ID")
 	flag.IntVar(&assignmentID, "assignment", 0, "Assignment ID")
 	flag.IntVar(&assignmentGroupID, "assignment_group", 0, "Assignment Group ID")
 	flag.BoolVar(&includeAssignments, "include_assignments", false, "Fetch assignments in group")
+	flag.StringVar(&file, "file", "", "Upload courses and groups from this file")
+	flag.BoolVar(&dry, "dry", false, "Dry run")
 	flag.Parse()
 
-	if courseID > 0 && assignmentID > 0 {
+	switch {
+	case courseID > 0 && assignmentID > 0 && file == "":
 		reportAssignment(courseID, assignmentID)
-	} else if courseID > 0 && assignmentGroupID > 0 {
+
+	case courseID > 0 && assignmentGroupID > 0 && file == "":
 		reportAssignmentGroup(courseID, assignmentGroupID, includeAssignments)
-	} else if courseID > 0 {
+
+	case courseID > 0 && file == "":
 		reportAllAssignmentGroups(courseID, includeAssignments)
-	} else {
-		args := flag.Args()
-		if len(args) != 1 {
-			flag.Usage()
-			log.Fatalf("expected YAML file name")
-		}
-		templates := read(args[0])
-		entries, courseID := applyDefaults(templates)
-		upload(entries, courseID)
+
+	case file != "":
+		templates := read(file)
+		entries, courseID := applyDefaults(templates, courseID)
+		upload(entries, courseID, dry)
+
+	default:
+		flag.Usage()
 	}
 }
 

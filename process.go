@@ -25,7 +25,7 @@ func read(filename string) []AssignmentOrGroup {
 	return results
 }
 
-func applyDefaults(entries []AssignmentOrGroup) (all []AssignmentOrGroup, courseID int) {
+func applyDefaults(entries []AssignmentOrGroup, courseID int) ([]AssignmentOrGroup, int) {
 	var defaultAsst *Assignment
 	var out []AssignmentOrGroup
 

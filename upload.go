@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func upload(all []AssignmentOrGroup, courseID int) {
+func upload(all []AssignmentOrGroup, courseID int, dry bool) {
 	standardJSON = true
 
 	groupID := 0
@@ -17,7 +17,7 @@ func upload(all []AssignmentOrGroup, courseID int) {
 			elt := aorg.Group
 			oldID := elt.ID
 			log.Printf("uploading group %d (%s)", elt.ID, elt.Name)
-			groupID = uploadGroup(elt, courseID)
+			groupID = uploadGroup(elt, courseID, dry)
 			if oldID == 0 {
 				log.Printf("new group ID %d", groupID)
 			}
@@ -39,7 +39,7 @@ func upload(all []AssignmentOrGroup, courseID int) {
 			}
 			oldID := elt.ID
 			log.Printf("uploading assignment %d (%s)", elt.ID, elt.Name)
-			newID := uploadAssignment(elt, courseID)
+			newID := uploadAssignment(elt, courseID, dry)
 			if oldID == 0 {
 				log.Printf("new assignment ID %d", newID)
 			}
@@ -49,7 +49,18 @@ func upload(all []AssignmentOrGroup, courseID int) {
 	}
 }
 
-func uploadGroup(elt *AssignmentGroup, courseID int) int {
+var fakeGroupID = 1000
+
+func uploadGroup(elt *AssignmentGroup, courseID int, dry bool) int {
+	Dump(elt)
+	if dry {
+		if elt.ID == 0 {
+			fakeGroupID++
+			return fakeGroupID - 1
+		}
+		return elt.ID
+	}
+
 	raw, err := json.Marshal(elt)
 	if err != nil {
 		log.Fatalf("Error JSON encoding group: %v", err)
@@ -85,8 +96,18 @@ func uploadGroup(elt *AssignmentGroup, courseID int) int {
 	return elt.ID
 }
 
-func uploadAssignment(elt *Assignment, courseID int) int {
+var fakeAsstID = 2000
+
+func uploadAssignment(elt *Assignment, courseID int, dry bool) int {
 	Dump(elt)
+	if dry {
+		if elt.ID == 0 {
+			fakeAsstID++
+			return fakeAsstID - 1
+		}
+		return elt.ID
+	}
+
 	raw, err := json.Marshal(&AssignmentOrGroup{Assignment: elt})
 	if err != nil {
 		log.Fatalf("Error JSON encoding assignment: %v", err)
